@@ -1,0 +1,73 @@
+<?xml version="1.0" ?>
+<!-- 
+ Copyright © Mapotempo, 2016
+ 
+ This file is part of Mapotempo.
+ 
+ Mapotempo is free software. You can redistribute it and/or
+ modify since you respect the terms of the GNU Affero General
+ Public License as published by the Free Software Foundation,
+ either version 3 of the License, or (at your option) any later version.
+ 
+ Mapotempo is distributed in the hope that it will be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ or FITNESS FOR A PARTICULAR PURPOSE.  See the Licenses for more details.
+ 
+ You should have received a copy of the GNU Affero General Public License
+ along with Mapotempo. If not, see:
+ <http://www.gnu.org/licenses/agpl.html>
+-->
+<algorithm xmlns="http://www.w3schools.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.w3schools.com algorithm_schema.xsd">
+
+	<maxIterations>3600000</maxIterations>
+
+	<terminationCriteria>
+		<termination basedOn="variationCoefficient">
+			<threshold>0.01</threshold>
+			<iterations>250</iterations>
+		</termination>
+		<termination basedOn="time">
+			<time>30000</time>
+		</termination>
+	</terminationCriteria>
+
+	<construction>
+		<insertion name="bestInsertion" />
+	</construction>
+
+	<strategy>
+		<memory>1</memory>
+		<searchStrategies>
+			<searchStrategy name="radialRuinAndRecreate">
+				<selector name="selectBest" />
+				<acceptor name="schrimpfAcceptance">
+					<alpha>0.02</alpha>
+					<warmup>10</warmup>
+				</acceptor>
+				<modules>
+					<module name="ruin_and_recreate">
+						<ruin name="randomRuin">
+							<share>0.3</share>
+						</ruin>
+						<insertion name="bestInsertion" />
+					</module>
+				</modules>
+				<probability>0.44</probability>
+			</searchStrategy>
+			<searchStrategy name="radialRuinAndRecreate2">
+				<selector name="selectBest" />
+				<acceptor name="schrimpfAcceptance" />
+				<modules>
+					<module name="ruin_and_recreate">
+						<ruin id="1" name="radialRuin">
+							<share>0.1</share>
+						</ruin>
+						<insertion name="bestInsertion" />
+					</module>
+				</modules>
+				<probability>0.56</probability>
+			</searchStrategy>
+		</searchStrategies>
+	</strategy>
+</algorithm>
