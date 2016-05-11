@@ -40,17 +40,44 @@
 		<dependency>
 			<groupId>jsprit</groupId>
 			<artifactId>jsprit-core</artifactId>
-			<version>1.6.2</version>
+			<version>1.6.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>jsprit</groupId>
 			<artifactId>jsprit-analysis</artifactId>
-			<version>1.6.2</version>
+			<version>1.6.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sf.jopt-simple</groupId>
 			<artifactId>jopt-simple</artifactId>
 			<version>4.9</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.9</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>xerces</groupId>
+			<artifactId>xercesImpl</artifactId>
+			<version>2.11.0</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math</artifactId>
+			<version>2.2</version>
+			<type>jar</type>
 		</dependency>
 	</dependencies>
 

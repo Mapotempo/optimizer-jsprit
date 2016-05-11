@@ -23,27 +23,29 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
 
+import com.graphhopper.jsprit.analysis.toolbox.AlgorithmSearchProgressChartListener;
+import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
+import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithmBuilder;
+import com.graphhopper.jsprit.core.algorithm.state.InternalStates;
+import com.graphhopper.jsprit.core.algorithm.state.StateManager;
+import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
+import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
+import com.graphhopper.jsprit.core.problem.io.VrpXMLReader;
+import com.graphhopper.jsprit.core.problem.io.VrpXMLWriter;
+import com.graphhopper.jsprit.core.problem.job.Job;
+import com.graphhopper.jsprit.core.problem.solution.SolutionCostCalculator;
+import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
+import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity.JobActivity;
+import com.graphhopper.jsprit.core.reporting.SolutionPrinter;
+import com.graphhopper.jsprit.core.util.Solutions;
+import com.graphhopper.jsprit.core.util.VehicleRoutingTransportCostsMatrix;
+
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
-import jsprit.analysis.toolbox.AlgorithmSearchProgressChartListener;
-import jsprit.core.algorithm.VehicleRoutingAlgorithm;
-import jsprit.core.algorithm.VehicleRoutingAlgorithmBuilder;
-import jsprit.core.algorithm.state.InternalStates;
-import jsprit.core.algorithm.state.StateManager;
-import jsprit.core.problem.VehicleRoutingProblem;
-import jsprit.core.problem.constraint.ConstraintManager;
-import jsprit.core.problem.io.VrpXMLReader;
-import jsprit.core.problem.job.Job;
-import jsprit.core.problem.solution.SolutionCostCalculator;
-import jsprit.core.problem.solution.VehicleRoutingProblemSolution;
-import jsprit.core.problem.solution.route.VehicleRoute;
-import jsprit.core.problem.solution.route.activity.TourActivity;
-import jsprit.core.problem.solution.route.activity.TourActivity.JobActivity;
-import jsprit.core.reporting.SolutionPrinter;
-import jsprit.core.util.Solutions;
-import jsprit.core.util.VehicleRoutingTransportCostsMatrix;
 
 public class Run {
 
@@ -204,6 +206,6 @@ public class Run {
 			System.out.println((int) bestSolution.getRoutes().iterator().next().getEnd().getArrTime() / 60 / 60);
 		}
 
-		new VrpXMLWriterMapotempo(problem, solutions).write(solutionFile);
+		new VrpXMLWriter(problem, solutions).write(solutionFile);
 	}
 }
