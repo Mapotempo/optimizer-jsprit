@@ -64,14 +64,10 @@ public class Run {
 				.defaultsTo("algorithmConfig.xml");
 		OptionSpec<String> optionSolution = parser.accepts("solution").withOptionalArg().ofType(String.class)
 				.defaultsTo("solution.xml");
-		OptionSpec<Integer> optionTimeLimit = parser.accepts("ms").withRequiredArg().ofType(Integer.class)
-				.defaultsTo(5000);
-		OptionSpec<Integer> optionIterationLimit = parser.accepts("iterations").withRequiredArg().ofType(Integer.class)
-				.defaultsTo(3600000);
-		OptionSpec<Integer> optionWithoutVariationLimit = parser.accepts("stable").withRequiredArg().ofType(Integer.class)
-				.defaultsTo(250);
-		OptionSpec<Double> optionWithoutVariationCoefficient = parser.accepts("coef").withRequiredArg().ofType(Double.class)
-				.defaultsTo(0.1);
+		OptionSpec<Integer> optionTimeLimit = parser.accepts("ms").withRequiredArg().ofType(Integer.class);
+		OptionSpec<Integer> optionIterationLimit = parser.accepts("iterations").withRequiredArg().ofType(Integer.class);
+		OptionSpec<Integer> optionWithoutVariationLimit = parser.accepts("stable_iterations").withRequiredArg().ofType(Integer.class);
+		OptionSpec<Double> optionWithoutVariationCoefficient = parser.accepts("stable_coef").withRequiredArg().ofType(Double.class);
 		OptionSpec<Integer> optionThreads = parser.accepts("threads").withRequiredArg().ofType(Integer.class)
 				.defaultsTo(1);
 		parser.accepts("debug");
@@ -206,15 +202,21 @@ public class Run {
 		});
 
 		VehicleRoutingAlgorithm algorithm = vraBuilder.build();
-		TimeTermination prematureTermination = new TimeTermination((long)algorithmDuration);
-		algorithm.addTerminationCriterion(prematureTermination);
-		algorithm.addListener(prematureTermination);
 
-		VariationCoefficientTermination variationCoef = new VariationCoefficientTermination(algorithmStableIteration,algorithmStableCoef);
-		algorithm.addTerminationCriterion(variationCoef);
-		algorithm.addListener(variationCoef);
+		if(algorithmDuration != null) {
+			TimeTermination prematureTermination = new TimeTermination((long)algorithmDuration);
+			algorithm.addTerminationCriterion(prematureTermination);
+			algorithm.addListener(prematureTermination);
+		}
 
-		algorithm.addTerminationCriterion(new IterationWithoutImprovementTermination(algorithmIteration));
+		if(algorithmStableIteration != null && algorithmStableCoef != null) {
+			VariationCoefficientTermination variationCoef = new VariationCoefficientTermination(algorithmStableIteration,algorithmStableCoef);
+			algorithm.addTerminationCriterion(variationCoef);
+			algorithm.addListener(variationCoef);
+		}
+
+		if(algorithmIteration != null)
+			algorithm.addTerminationCriterion(new IterationWithoutImprovementTermination(algorithmIteration));
 
 		if (debugGraphFile != null) {
 			algorithm.addListener(new AlgorithmSearchProgressChartListener(debugGraphFile));
