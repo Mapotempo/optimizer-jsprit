@@ -22,25 +22,14 @@
 
 	<maxIterations>3600000</maxIterations>
 
-	<terminationCriteria>
-		<termination basedOn="variationCoefficient">
-			<threshold>0.01</threshold>
-			<iterations>250</iterations>
-		</termination>
-		<termination basedOn="time">
-			<time>30000</time>
-		</termination>
-	</terminationCriteria>
-
 	<construction>
-		<insertion name="bestInsertion" />
+		<insertion name="regretInsertion"/>
 	</construction>
-
 	<strategy>
 		<memory>1</memory>
 		<searchStrategies>
-			<searchStrategy name="radialRuinAndRecreate">
-				<selector name="selectBest" />
+			<searchStrategy name="randomRuinLarge">
+				<selector name="selectBest"/>
 				<acceptor name="schrimpfAcceptance">
 					<alpha>0.02</alpha>
 					<warmup>10</warmup>
@@ -48,25 +37,60 @@
 				<modules>
 					<module name="ruin_and_recreate">
 						<ruin name="randomRuin">
-							<share>0.3</share>
-						</ruin>
-						<insertion name="bestInsertion" />
+								<share>0.5</share>
+							</ruin>
+						<insertion name="regretInsertion"/>
 					</module>
 				</modules>
-				<probability>0.44</probability>
+				<probability>0.3</probability>
 			</searchStrategy>
-			<searchStrategy name="radialRuinAndRecreate2">
-				<selector name="selectBest" />
-				<acceptor name="schrimpfAcceptance" />
+			<searchStrategy name="LargeRadialRuinAndRecreate">
+				<selector name="selectBest"/>
+				<acceptor name="schrimpfAcceptance">
+					<alpha>0.02</alpha>
+					<warmup>10</warmup>
+				</acceptor>
 				<modules>
 					<module name="ruin_and_recreate">
-						<ruin id="1" name="radialRuin">
-							<share>0.1</share>
+						<ruin name="radialRuin">
+							<share>0.3</share>
 						</ruin>
-						<insertion name="bestInsertion" />
+						<insertion name="bestInsertion" id="1"/>
 					</module>
 				</modules>
-				<probability>0.56</probability>
+				<probability>0.2</probability>
+			</searchStrategy>
+			<searchStrategy name="randomRuinSmall">
+				<selector name="selectBest"/>
+				<acceptor name="schrimpfAcceptance">
+					<alpha>0.02</alpha>
+					<warmup>10</warmup>
+				</acceptor>
+				<modules>
+					<module name="ruin_and_recreate">
+						<ruin name="randomRuin">
+							<share>0.1</share>
+						</ruin>
+						<insertion name="regretInsertion"/>
+					</module>
+				</modules>
+				<probability>0.3</probability>
+			</searchStrategy>
+			<searchStrategy name="SmallradialRuinAndRecreate">
+				<selector name="selectBest"/>
+				<acceptor name="schrimpfAcceptance">
+					<alpha>0.02</alpha>
+					<warmup>10</warmup>
+					</acceptor>
+					<modules>
+						<module name="ruin_and_recreate">
+							<ruin name="radialRuin">
+								<share>0.05</share>
+							</ruin>
+							<insertion name="bestInsertion" id="1"/>
+						</module>
+					</modules>
+					<probability>0.2</probability>
 			</searchStrategy>
 		</searchStrategies>
 	</strategy>

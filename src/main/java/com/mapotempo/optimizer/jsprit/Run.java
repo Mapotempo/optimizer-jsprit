@@ -28,6 +28,9 @@ import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithmBuilder;
 import com.graphhopper.jsprit.core.algorithm.state.InternalStates;
 import com.graphhopper.jsprit.core.algorithm.state.StateManager;
+import com.graphhopper.jsprit.core.algorithm.termination.IterationWithoutImprovementTermination;
+import com.graphhopper.jsprit.core.algorithm.termination.TimeTermination;
+import com.graphhopper.jsprit.core.algorithm.termination.VariationCoefficientTermination;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
 import com.graphhopper.jsprit.core.problem.io.VrpXMLReader;
@@ -61,6 +64,14 @@ public class Run {
 				.defaultsTo("algorithmConfig.xml");
 		OptionSpec<String> optionSolution = parser.accepts("solution").withOptionalArg().ofType(String.class)
 				.defaultsTo("solution.xml");
+		OptionSpec<Integer> optionTimeLimit = parser.accepts("ms").withRequiredArg().ofType(Integer.class)
+				.defaultsTo(5000);
+		OptionSpec<Integer> optionIterationLimit = parser.accepts("iterations").withRequiredArg().ofType(Integer.class)
+				.defaultsTo(3600000);
+		OptionSpec<Integer> optionWithoutVariationLimit = parser.accepts("stable").withRequiredArg().ofType(Integer.class)
+				.defaultsTo(250);
+		OptionSpec<Double> optionWithoutVariationCoefficient = parser.accepts("coef").withRequiredArg().ofType(Double.class)
+				.defaultsTo(0.1);
 		OptionSpec<Integer> optionThreads = parser.accepts("threads").withRequiredArg().ofType(Integer.class)
 				.defaultsTo(1);
 		parser.accepts("debug");
@@ -85,16 +96,20 @@ public class Run {
 		String timeMatrixFile = options.valueOf(optionTimeMatrix);
 		String distanceMatrixFile = options.valueOf(optionsDistanceMatrix);
 		String instanceFile = options.valueOf(optionInstanceFile);
+		Integer solveDuration = options.valueOf(optionTimeLimit);
+		Integer solveIteration = options.valueOf(optionIterationLimit);
+		Integer solveIterationWithoutVariation = options.valueOf(optionWithoutVariationLimit);
+		Double solveCoefficientWithoutVariation = options.valueOf(optionWithoutVariationCoefficient);
 		Integer threads = options.valueOf(optionThreads);
 		boolean debug = options.has("debug");
 		String debugGraphFile = options.valueOf(optionDebugGraph);
 
-		new Run(algorithmFile, solutionFile, timeMatrixFile, distanceMatrixFile, instanceFile, threads, debug,
+		new Run(algorithmFile, solutionFile, timeMatrixFile, distanceMatrixFile, instanceFile, solveDuration, solveIteration, solveIterationWithoutVariation, solveCoefficientWithoutVariation, threads, debug,
 				debugGraphFile);
 	}
 
 	public Run(String algorithmFile, String solutionFile, String timeMatrixFile, String distanceMatrixFile,
-			String instanceFile, Integer threads, boolean debug, String debugGraphFile) throws IOException {
+			String instanceFile, Integer algorithmDuration, Integer algorithmIteration, Integer algorithmStableIteration, Double algorithmStableCoef, Integer threads, boolean debug, String debugGraphFile) throws IOException {
 		VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder = VehicleRoutingTransportCostsMatrix.Builder
 				.newInstance(true);
 		if (timeMatrixFile != null) {
@@ -103,7 +118,7 @@ public class Run {
 		if (distanceMatrixFile != null) {
 			readDistanceFile(costMatrixBuilder, distanceMatrixFile);
 		}
-		run(algorithmFile, instanceFile, costMatrixBuilder.build(), solutionFile, threads, debug, debugGraphFile);
+		run(algorithmFile, instanceFile, costMatrixBuilder.build(), algorithmDuration, algorithmIteration, algorithmStableIteration, algorithmStableCoef, solutionFile, threads, debug, debugGraphFile);
 	}
 
 	private void readTimeFile(VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder, String path)
@@ -161,7 +176,7 @@ public class Run {
 	}
 
 	private void run(String algorithmFile, String instanceFile, VehicleRoutingTransportCostsMatrix costMatrix,
-			String solutionFile, Integer threads, boolean debug, String debugGraphFile) {
+			Integer algorithmDuration, Integer algorithmIteration, Integer algorithmStableIteration, Double algorithmStableCoef, String solutionFile, Integer threads, boolean debug, String debugGraphFile) {
 
 		VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
 		vrpBuilder.setRoutingCost(costMatrix);
@@ -191,6 +206,15 @@ public class Run {
 		});
 
 		VehicleRoutingAlgorithm algorithm = vraBuilder.build();
+		TimeTermination prematureTermination = new TimeTermination((long)algorithmDuration);
+		algorithm.addTerminationCriterion(prematureTermination);
+		algorithm.addListener(prematureTermination);
+
+		VariationCoefficientTermination variationCoef = new VariationCoefficientTermination(algorithmStableIteration,algorithmStableCoef);
+		algorithm.addTerminationCriterion(variationCoef);
+		algorithm.addListener(variationCoef);
+
+		algorithm.addTerminationCriterion(new IterationWithoutImprovementTermination(algorithmIteration));
 
 		if (debugGraphFile != null) {
 			algorithm.addListener(new AlgorithmSearchProgressChartListener(debugGraphFile));
