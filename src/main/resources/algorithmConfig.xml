@@ -26,7 +26,7 @@
 		<insertion name="regretInsertion"/>
 	</construction>
 	<strategy>
-		<memory>1</memory>
+		<memory>3</memory>
 		<searchStrategies>
 			<searchStrategy name="randomRuinLarge">
 				<selector name="selectBest"/>
