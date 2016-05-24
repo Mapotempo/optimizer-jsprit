@@ -39,7 +39,8 @@ public class RunTest {
 		String matrix = this.getClass().getClassLoader().getResource("time-2.matrix").getPath();
 		String instance = this.getClass().getClassLoader().getResource("v1s2.xml").getPath();
 		String solution = File.createTempFile("solution", "").getAbsolutePath();
-		Run.main(new String[] { "--time_matrix", matrix, "--instance", instance, "--solution", solution });
+		String solveTime = Integer.toString(100);
+		Run.main(new String[] { "--time_matrix", matrix, "--instance", instance, "--solution", solution, "--ms", solveTime });
 	}
 
 	@Test
