@@ -65,7 +65,7 @@ public class Run {
 		OptionSpec<String> optionSolution = parser.accepts("solution").withOptionalArg().ofType(String.class)
 				.defaultsTo("solution.xml");
 		OptionSpec<Integer> optionTimeLimit = parser.accepts("ms").withRequiredArg().ofType(Integer.class);
-		OptionSpec<Integer> optionIterationLimit = parser.accepts("iterations").withRequiredArg().ofType(Integer.class);
+		OptionSpec<Integer> optionWithoutImprovementIterationLimit = parser.accepts("no_improvment_iterations").withRequiredArg().ofType(Integer.class);
 		OptionSpec<Integer> optionWithoutVariationLimit = parser.accepts("stable_iterations").withRequiredArg().ofType(Integer.class);
 		OptionSpec<Double> optionWithoutVariationCoefficient = parser.accepts("stable_coef").withRequiredArg().ofType(Double.class);
 		OptionSpec<Integer> optionThreads = parser.accepts("threads").withRequiredArg().ofType(Integer.class)
@@ -93,19 +93,19 @@ public class Run {
 		String distanceMatrixFile = options.valueOf(optionsDistanceMatrix);
 		String instanceFile = options.valueOf(optionInstanceFile);
 		Integer solveDuration = options.valueOf(optionTimeLimit);
-		Integer solveIteration = options.valueOf(optionIterationLimit);
+		Integer solveIterationWithoutImprovement = options.valueOf(optionWithoutImprovementIterationLimit);
 		Integer solveIterationWithoutVariation = options.valueOf(optionWithoutVariationLimit);
 		Double solveCoefficientWithoutVariation = options.valueOf(optionWithoutVariationCoefficient);
 		Integer threads = options.valueOf(optionThreads);
 		boolean debug = options.has("debug");
 		String debugGraphFile = options.valueOf(optionDebugGraph);
 
-		new Run(algorithmFile, solutionFile, timeMatrixFile, distanceMatrixFile, instanceFile, solveDuration, solveIteration, solveIterationWithoutVariation, solveCoefficientWithoutVariation, threads, debug,
+		new Run(algorithmFile, solutionFile, timeMatrixFile, distanceMatrixFile, instanceFile, solveDuration, solveIterationWithoutImprovement, solveIterationWithoutVariation, solveCoefficientWithoutVariation, threads, debug,
 				debugGraphFile);
 	}
 
 	public Run(String algorithmFile, String solutionFile, String timeMatrixFile, String distanceMatrixFile,
-			String instanceFile, Integer algorithmDuration, Integer algorithmIteration, Integer algorithmStableIteration, Double algorithmStableCoef, Integer threads, boolean debug, String debugGraphFile) throws IOException {
+			String instanceFile, Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, Integer threads, boolean debug, String debugGraphFile) throws IOException {
 		VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder = VehicleRoutingTransportCostsMatrix.Builder
 				.newInstance(true);
 		if (timeMatrixFile != null) {
@@ -114,7 +114,7 @@ public class Run {
 		if (distanceMatrixFile != null) {
 			readDistanceFile(costMatrixBuilder, distanceMatrixFile);
 		}
-		run(algorithmFile, instanceFile, costMatrixBuilder.build(), algorithmDuration, algorithmIteration, algorithmStableIteration, algorithmStableCoef, solutionFile, threads, debug, debugGraphFile);
+		run(algorithmFile, instanceFile, costMatrixBuilder.build(), algorithmDuration, algorithmNoImprovementIteration, algorithmStableIteration, algorithmStableCoef, solutionFile, threads, debug, debugGraphFile);
 	}
 
 	private void readTimeFile(VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder, String path)
@@ -172,7 +172,7 @@ public class Run {
 	}
 
 	private void run(String algorithmFile, String instanceFile, VehicleRoutingTransportCostsMatrix costMatrix,
-			Integer algorithmDuration, Integer algorithmIteration, Integer algorithmStableIteration, Double algorithmStableCoef, String solutionFile, Integer threads, boolean debug, String debugGraphFile) {
+			Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, String solutionFile, Integer threads, boolean debug, String debugGraphFile) {
 
 		VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
 		vrpBuilder.setRoutingCost(costMatrix);
@@ -215,8 +215,8 @@ public class Run {
 			algorithm.addListener(variationCoef);
 		}
 
-		if(algorithmIteration != null)
-			algorithm.addTerminationCriterion(new IterationWithoutImprovementTermination(algorithmIteration));
+		if(algorithmNoImprovementIteration != null)
+			algorithm.addTerminationCriterion(new IterationWithoutImprovementTermination(algorithmNoImprovementIteration));
 
 		if (debugGraphFile != null) {
 			algorithm.addListener(new AlgorithmSearchProgressChartListener(debugGraphFile));
