@@ -203,6 +203,17 @@ public class Run {
 
 		VehicleRoutingAlgorithm algorithm = vraBuilder.build();
 
+		IterationStartsListener displayBestScore = new IterationStartsListener() {
+			@Override
+			public void informIterationStarts(int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
+				if (bestCurrentSolution == null || Solutions.bestOf(solutions).getCost() < bestCurrentSolution.getCost()){
+					bestCurrentSolution = Solutions.bestOf(solutions);
+					System.out.println("\nIteration : " + i + " Cost : " + bestCurrentSolution.getCost());
+				}
+			}
+		};
+		algorithm.addListener(displayBestScore);
+
 		if(algorithmDuration != null) {
 			TimeTermination prematureTermination = new TimeTermination((long)algorithmDuration);
 			algorithm.addTerminationCriterion(prematureTermination);
