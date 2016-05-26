@@ -175,7 +175,24 @@ public class Run {
 			Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, String solutionFile, Integer threads, boolean debug, String debugGraphFile) {
 
 		VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
-		vrpBuilder.setRoutingCost(costMatrix);
+		VehicleRoutingTransportCosts costEdit = new AbstractForwardVehicleRoutingTransportCosts() {
+
+			@Override
+			public double getTransportCost(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
+			if (vehicle == null) return costMatrix.getDistance(from.getId(), to.getId());
+				VehicleCostParams costParams = vehicle.getType().getVehicleCostParams();
+				return costParams.perDistanceUnit * costMatrix.getDistance(from.getId(), to.getId()) + 20*Math.sqrt(costParams.perDistanceUnit * costMatrix.getDistance(from.getId(), to.getId()))
+					+ costParams.perTransportTimeUnit * costMatrix.getTransportTime(from, to,departureTime, driver, vehicle) + 20*Math.sqrt(costParams.perTransportTimeUnit * costMatrix.getTransportTime(from, to,departureTime, driver, vehicle));
+			}
+
+			@Override
+			public double getTransportTime(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
+				if (from.getIndex() < 0 || to.getIndex() < 0)
+					throw new IllegalArgumentException("index of from " + from + " to " + to + " < 0 ");
+				return costMatrix.getTransportTime(from, to, departureTime, driver, vehicle);
+			}
+		};
+		vrpBuilder.setRoutingCost(costEdit);
 
 		new VrpXMLReader(vrpBuilder).read(instanceFile);
 
