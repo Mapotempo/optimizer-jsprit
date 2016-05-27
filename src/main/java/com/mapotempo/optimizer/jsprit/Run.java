@@ -26,13 +26,18 @@ import java.util.Collection;
 import com.graphhopper.jsprit.analysis.toolbox.AlgorithmSearchProgressChartListener;
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithmBuilder;
+import com.graphhopper.jsprit.core.algorithm.listener.IterationStartsListener;
 import com.graphhopper.jsprit.core.algorithm.state.InternalStates;
 import com.graphhopper.jsprit.core.algorithm.state.StateManager;
 import com.graphhopper.jsprit.core.algorithm.termination.IterationWithoutImprovementTermination;
 import com.graphhopper.jsprit.core.algorithm.termination.TimeTermination;
 import com.graphhopper.jsprit.core.algorithm.termination.VariationCoefficientTermination;
+import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
+import com.graphhopper.jsprit.core.problem.cost.AbstractForwardVehicleRoutingTransportCosts;
+import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingTransportCosts;
+import com.graphhopper.jsprit.core.problem.driver.Driver;
 import com.graphhopper.jsprit.core.problem.io.VrpXMLReader;
 import com.graphhopper.jsprit.core.problem.io.VrpXMLWriter;
 import com.graphhopper.jsprit.core.problem.job.Job;
@@ -41,6 +46,8 @@ import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolutio
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity.JobActivity;
+import com.graphhopper.jsprit.core.problem.vehicle.Vehicle;
+import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl.VehicleCostParams;
 import com.graphhopper.jsprit.core.reporting.SolutionPrinter;
 import com.graphhopper.jsprit.core.util.Solutions;
 import com.graphhopper.jsprit.core.util.VehicleRoutingTransportCostsMatrix;
@@ -51,6 +58,8 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
 public class Run {
+
+	private VehicleRoutingProblemSolution bestCurrentSolution = null;
 
 	public static void main(String[] args) throws IOException {
 		OptionParser parser = new OptionParser();
@@ -171,7 +180,7 @@ public class Run {
 		return "Nb delivery : " + i + "\n" + myRet;
 	}
 
-	private void run(String algorithmFile, String instanceFile, VehicleRoutingTransportCostsMatrix costMatrix,
+	private void run(String algorithmFile, String instanceFile, final VehicleRoutingTransportCostsMatrix costMatrix,
 			Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, String solutionFile, Integer threads, boolean debug, String debugGraphFile) {
 
 		VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
