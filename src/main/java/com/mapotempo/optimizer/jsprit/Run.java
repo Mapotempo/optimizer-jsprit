@@ -35,6 +35,7 @@ import com.graphhopper.jsprit.core.algorithm.termination.VariationCoefficientTer
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.constraint.ConstraintManager;
+import com.graphhopper.jsprit.core.problem.constraint.NoFirstANDSecondSkillConstraint;
 import com.graphhopper.jsprit.core.problem.cost.AbstractForwardVehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.driver.Driver;
@@ -188,6 +189,8 @@ public class Run {
 
 			@Override
 			public double getTransportCost(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
+			if(from == null || to == null)
+				return 0.0;
 			if (vehicle == null) return costMatrix.getDistance(from.getId(), to.getId());
 				VehicleCostParams costParams = vehicle.getType().getVehicleCostParams();
 				return costParams.perDistanceUnit * costMatrix.getDistance(from.getId(), to.getId()) + 20*Math.sqrt(costParams.perDistanceUnit * costMatrix.getDistance(from.getId(), to.getId()))
@@ -196,6 +199,8 @@ public class Run {
 
 			@Override
 			public double getTransportTime(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
+				if(from == null || to == null)
+					return 0.0;
 				if (from.getIndex() < 0 || to.getIndex() < 0)
 					throw new IllegalArgumentException("index of from " + from + " to " + to + " < 0 ");
 				return costMatrix.getTransportTime(from, to, departureTime, driver, vehicle);
@@ -213,6 +218,7 @@ public class Run {
 		final StateManager stateManager = new StateManager(problem);
 
 		ConstraintManager constraintManager = new ConstraintManager(problem, stateManager);
+		constraintManager.addConstraint(new NoFirstANDSecondSkillConstraint(problem.getLinkedSkills(), stateManager), ConstraintManager.Priority.CRITICAL);
 
 		vraBuilder.setStateAndConstraintManager(stateManager, constraintManager);
 		vraBuilder.setObjectiveFunction(new SolutionCostCalculator() {
