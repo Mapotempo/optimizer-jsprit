@@ -80,6 +80,7 @@ public class Run {
 		OptionSpec<Double> optionWithoutVariationCoefficient = parser.accepts("stable_coef").withRequiredArg().ofType(Double.class);
 		OptionSpec<Integer> optionThreads = parser.accepts("threads").withRequiredArg().ofType(Integer.class)
 				.defaultsTo(1);
+		parser.accepts("nearby");
 		parser.accepts("debug");
 		OptionSpec<String> optionDebugGraph = parser.accepts("debug-graph").withOptionalArg().ofType(String.class);
 		parser.accepts("help").forHelp();
@@ -108,14 +109,15 @@ public class Run {
 		Double solveCoefficientWithoutVariation = options.valueOf(optionWithoutVariationCoefficient);
 		Integer threads = options.valueOf(optionThreads);
 		boolean debug = options.has("debug");
+		boolean nearby = options.has("nearby");
 		String debugGraphFile = options.valueOf(optionDebugGraph);
 
-		new Run(algorithmFile, solutionFile, timeMatrixFile, distanceMatrixFile, instanceFile, solveDuration, solveIterationWithoutImprovement, solveIterationWithoutVariation, solveCoefficientWithoutVariation, threads, debug,
+		new Run(algorithmFile, solutionFile, timeMatrixFile, distanceMatrixFile, instanceFile, solveDuration, solveIterationWithoutImprovement, solveIterationWithoutVariation, solveCoefficientWithoutVariation, threads, debug, nearby,
 				debugGraphFile);
 	}
 
 	public Run(String algorithmFile, String solutionFile, String timeMatrixFile, String distanceMatrixFile,
-			String instanceFile, Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, Integer threads, boolean debug, String debugGraphFile) throws IOException {
+			String instanceFile, Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, Integer threads, boolean debug, boolean nearby, String debugGraphFile) throws IOException {
 		VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder = VehicleRoutingTransportCostsMatrix.Builder
 				.newInstance(true);
 		if (timeMatrixFile != null) {
@@ -124,7 +126,7 @@ public class Run {
 		if (distanceMatrixFile != null) {
 			readDistanceFile(costMatrixBuilder, distanceMatrixFile);
 		}
-		run(algorithmFile, instanceFile, costMatrixBuilder.build(), algorithmDuration, algorithmNoImprovementIteration, algorithmStableIteration, algorithmStableCoef, solutionFile, threads, debug, debugGraphFile);
+		run(algorithmFile, instanceFile, costMatrixBuilder.build(), algorithmDuration, algorithmNoImprovementIteration, algorithmStableIteration, algorithmStableCoef, solutionFile, threads, debug, nearby, debugGraphFile);
 	}
 
 	private void readTimeFile(VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder, String path)
@@ -182,31 +184,36 @@ public class Run {
 	}
 
 	private void run(String algorithmFile, String instanceFile, final VehicleRoutingTransportCostsMatrix costMatrix,
-			Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, String solutionFile, Integer threads, boolean debug, String debugGraphFile) {
+			Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, String solutionFile, Integer threads, boolean debug, boolean nearby, String debugGraphFile) {
 
 		VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
-		VehicleRoutingTransportCosts costEdit = new AbstractForwardVehicleRoutingTransportCosts() {
+		if(nearby) {
+			VehicleRoutingTransportCosts costEdit = new AbstractForwardVehicleRoutingTransportCosts() {
 
-			@Override
-			public double getTransportCost(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
-			if(from == null || to == null)
-				return 0.0;
-			if (vehicle == null) return costMatrix.getDistance(from.getId(), to.getId());
-				VehicleCostParams costParams = vehicle.getType().getVehicleCostParams();
-				return costParams.perDistanceUnit * costMatrix.getDistance(from.getId(), to.getId()) + 20*Math.sqrt(costParams.perDistanceUnit * costMatrix.getDistance(from.getId(), to.getId()))
-					+ costParams.perTransportTimeUnit * costMatrix.getTransportTime(from, to,departureTime, driver, vehicle) + 20*Math.sqrt(costParams.perTransportTimeUnit * costMatrix.getTransportTime(from, to,departureTime, driver, vehicle));
-			}
-
-			@Override
-			public double getTransportTime(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
+				@Override
+				public double getTransportCost(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
 				if(from == null || to == null)
 					return 0.0;
-				if (from.getIndex() < 0 || to.getIndex() < 0)
-					throw new IllegalArgumentException("index of from " + from + " to " + to + " < 0 ");
-				return costMatrix.getTransportTime(from, to, departureTime, driver, vehicle);
-			}
-		};
-		vrpBuilder.setRoutingCost(costEdit);
+				if (vehicle == null) return costMatrix.getDistance(from.getId(), to.getId());
+					VehicleCostParams costParams = vehicle.getType().getVehicleCostParams();
+					return costParams.perDistanceUnit * costMatrix.getDistance(from.getId(), to.getId()) + 20*Math.sqrt(costParams.perDistanceUnit * costMatrix.getDistance(from.getId(), to.getId()))
+						+ costParams.perTransportTimeUnit * costMatrix.getTransportTime(from, to,departureTime, driver, vehicle) + 20*Math.sqrt(costParams.perTransportTimeUnit * costMatrix.getTransportTime(from, to,departureTime, driver, vehicle));
+				}
+
+				@Override
+				public double getTransportTime(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
+					if(from == null || to == null)
+						return 0.0;
+					if (from.getIndex() < 0 || to.getIndex() < 0)
+						throw new IllegalArgumentException("index of from " + from + " to " + to + " < 0 ");
+					return costMatrix.getTransportTime(from, to, departureTime, driver, vehicle);
+				}
+			};
+			vrpBuilder.setRoutingCost(costEdit);
+		}
+		else {
+			vrpBuilder.setRoutingCost(costMatrix);
+		}
 
 		new VrpXMLReader(vrpBuilder).read(instanceFile);
 

@@ -40,7 +40,7 @@ public class RunTest {
 		String instance = this.getClass().getClassLoader().getResource("v1s2.xml").getPath();
 		String solution = File.createTempFile("solution", "").getAbsolutePath();
 		String solveTime = Integer.toString(100);
-		Run.main(new String[] { "--time_matrix", matrix, "--instance", instance, "--solution", solution, "--ms", solveTime });
+		Run.main(new String[] { "--time_matrix", matrix, "--instance", instance, "--solution", solution, "--ms", solveTime , "--nearby"});
 	}
 
 	@Test
@@ -48,6 +48,6 @@ public class RunTest {
 		String matrix = this.getClass().getClassLoader().getResource("time-2.matrix").getPath();
 		String instance = this.getClass().getClassLoader().getResource("v1s2.xml").getPath();
 		String solution = File.createTempFile("solution", "").getAbsolutePath();
-		new Run("algorithmConfig.xml", solution, matrix, null, instance, 100, null, null, null, 1, false, null);
+		new Run("algorithmConfig.xml", solution, matrix, null, instance, 100, null, null, null, 1, false, true, null);
 	}
 }
