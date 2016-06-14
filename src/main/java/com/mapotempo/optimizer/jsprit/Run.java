@@ -240,7 +240,7 @@ public class Run {
 			public void informIterationStarts(int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
 				if (bestCurrentSolution == null || Solutions.bestOf(solutions).getCost() < bestCurrentSolution.getCost()){
 					bestCurrentSolution = Solutions.bestOf(solutions);
-					System.out.println("\nIteration : " + i + " Cost : " + bestCurrentSolution.getCost());
+					System.out.println("Iteration : " + i + " Cost : " + bestCurrentSolution.getCost());
 				}
 			}
 		};
