@@ -225,7 +225,12 @@ public class Run {
 		final StateManager stateManager = new StateManager(problem);
 
 		ConstraintManager constraintManager = new ConstraintManager(problem, stateManager);
-		constraintManager.addConstraint(new NoFirstANDSecondSkillConstraint(problem.getLinkedSkills(), stateManager), ConstraintManager.Priority.CRITICAL);
+
+		for(Vehicle vehc : problem.getVehicles())
+			if(vehc.getAlternativeSkills().size() > 1) {
+				constraintManager.addConstraint(new NoFirstANDSecondSkillConstraint(problem.getLinkedSkills(), stateManager), ConstraintManager.Priority.CRITICAL);
+				break;
+			}
 
 		vraBuilder.setStateAndConstraintManager(stateManager, constraintManager);
 		vraBuilder.setObjectiveFunction(new SolutionCostCalculator() {
