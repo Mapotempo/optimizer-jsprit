@@ -184,7 +184,7 @@ public class Run {
 	}
 
 	private void run(String algorithmFile, String instanceFile, final VehicleRoutingTransportCostsMatrix costMatrix,
-			Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, String solutionFile, Integer threads, boolean debug, boolean nearby, String debugGraphFile) {
+			Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, final String solutionFile, Integer threads, boolean debug, boolean nearby, String debugGraphFile) {
 
 		VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
 		if(nearby) {
@@ -253,6 +253,7 @@ public class Run {
 				if (bestCurrentSolution == null || Solutions.bestOf(solutions).getCost() < bestCurrentSolution.getCost()){
 					bestCurrentSolution = Solutions.bestOf(solutions);
 					System.out.println("Iteration : " + i + " Cost : " + bestCurrentSolution.getCost());
+					new VrpXMLWriter(problem, solutions, true).write(solutionFile);
 				}
 			}
 		};
