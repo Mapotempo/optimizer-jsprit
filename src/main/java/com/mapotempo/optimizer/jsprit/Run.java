@@ -26,7 +26,7 @@ import java.util.Collection;
 import com.graphhopper.jsprit.analysis.toolbox.AlgorithmSearchProgressChartListener;
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithmBuilder;
-import com.graphhopper.jsprit.core.algorithm.listener.IterationStartsListener;
+import com.graphhopper.jsprit.core.algorithm.listener.IterationEndsListener;
 import com.graphhopper.jsprit.core.algorithm.state.InternalStates;
 import com.graphhopper.jsprit.core.algorithm.state.StateManager;
 import com.graphhopper.jsprit.core.algorithm.termination.IterationWithoutImprovementTermination;
@@ -247,9 +247,9 @@ public class Run {
 
 		VehicleRoutingAlgorithm algorithm = vraBuilder.build();
 
-		IterationStartsListener displayBestScore = new IterationStartsListener() {
+		IterationEndsListener displayBestScore = new IterationEndsListener() {
 			@Override
-			public void informIterationStarts(int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
+			public void informIterationEnds(int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
 				if (bestCurrentSolution == null || Solutions.bestOf(solutions).getCost() < bestCurrentSolution.getCost()){
 					bestCurrentSolution = Solutions.bestOf(solutions);
 					System.out.println("Iteration : " + i + " Cost : " + bestCurrentSolution.getCost());
