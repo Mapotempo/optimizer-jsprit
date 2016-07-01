@@ -21,6 +21,7 @@ package com.mapotempo.optimizer.jsprit;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import com.graphhopper.jsprit.analysis.toolbox.AlgorithmSearchProgressChartListener;
@@ -58,7 +59,12 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Run {
+
+	final static Logger logger = LoggerFactory.getLogger(Run.class.getName());
 
 	private VehicleRoutingProblemSolution bestCurrentSolution = null;
 
@@ -252,8 +258,10 @@ public class Run {
 			public void informIterationEnds(int i, VehicleRoutingProblem problem, Collection<VehicleRoutingProblemSolution> solutions) {
 				if (bestCurrentSolution == null || Solutions.bestOf(solutions).getCost() < bestCurrentSolution.getCost()){
 					bestCurrentSolution = Solutions.bestOf(solutions);
-					System.out.println("Iteration : " + i + " Cost : " + bestCurrentSolution.getCost());
-					new VrpXMLWriter(problem, solutions, true).write(solutionFile);
+					Collection<VehicleRoutingProblemSolution> bestEver = new ArrayList<VehicleRoutingProblemSolution>();
+					bestEver.add(bestCurrentSolution);
+					new VrpXMLWriter(problem, bestEver, true).write(solutionFile);
+					logger.info("Iteration : " + i + " Cost : " + bestCurrentSolution.getCost());
 				}
 			}
 		};
