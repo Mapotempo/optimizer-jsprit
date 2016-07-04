@@ -80,6 +80,7 @@ public class Run {
 				.defaultsTo("algorithmConfig.xml");
 		OptionSpec<String> optionSolution = parser.accepts("solution").withOptionalArg().ofType(String.class)
 				.defaultsTo("solution.xml");
+		parser.accepts("minmax");
 		OptionSpec<Integer> optionTimeLimit = parser.accepts("ms").withRequiredArg().ofType(Integer.class);
 		OptionSpec<Integer> optionWithoutImprovementIterationLimit = parser.accepts("no_improvment_iterations").withRequiredArg().ofType(Integer.class);
 		OptionSpec<Integer> optionWithoutVariationLimit = parser.accepts("stable_iterations").withRequiredArg().ofType(Integer.class);
@@ -109,6 +110,7 @@ public class Run {
 		String timeMatrixFile = options.valueOf(optionTimeMatrix);
 		String distanceMatrixFile = options.valueOf(optionsDistanceMatrix);
 		String instanceFile = options.valueOf(optionInstanceFile);
+		boolean minMax = options.has("minmax");
 		Integer solveDuration = options.valueOf(optionTimeLimit);
 		Integer solveIterationWithoutImprovement = options.valueOf(optionWithoutImprovementIterationLimit);
 		Integer solveIterationWithoutVariation = options.valueOf(optionWithoutVariationLimit);
@@ -118,12 +120,12 @@ public class Run {
 		boolean nearby = options.has("nearby");
 		String debugGraphFile = options.valueOf(optionDebugGraph);
 
-		new Run(algorithmFile, solutionFile, timeMatrixFile, distanceMatrixFile, instanceFile, solveDuration, solveIterationWithoutImprovement, solveIterationWithoutVariation, solveCoefficientWithoutVariation, threads, debug, nearby,
+		new Run(algorithmFile, solutionFile, timeMatrixFile, distanceMatrixFile, instanceFile, minMax, solveDuration, solveIterationWithoutImprovement, solveIterationWithoutVariation, solveCoefficientWithoutVariation, threads, debug, nearby,
 				debugGraphFile);
 	}
 
 	public Run(String algorithmFile, String solutionFile, String timeMatrixFile, String distanceMatrixFile,
-			String instanceFile, Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, Integer threads, boolean debug, boolean nearby, String debugGraphFile) throws IOException {
+			String instanceFile, boolean minMax, Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, Integer threads, boolean debug, boolean nearby, String debugGraphFile) throws IOException {
 		VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder = VehicleRoutingTransportCostsMatrix.Builder
 				.newInstance(true);
 		if (timeMatrixFile != null) {
@@ -132,7 +134,7 @@ public class Run {
 		if (distanceMatrixFile != null) {
 			readDistanceFile(costMatrixBuilder, distanceMatrixFile);
 		}
-		run(algorithmFile, instanceFile, costMatrixBuilder.build(), algorithmDuration, algorithmNoImprovementIteration, algorithmStableIteration, algorithmStableCoef, solutionFile, threads, debug, nearby, debugGraphFile);
+		run(algorithmFile, instanceFile, costMatrixBuilder.build(), minMax, algorithmDuration, algorithmNoImprovementIteration, algorithmStableIteration, algorithmStableCoef, solutionFile, threads, debug, nearby, debugGraphFile);
 	}
 
 	private void readTimeFile(VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder, String path)
@@ -189,7 +191,7 @@ public class Run {
 		return "Nb delivery : " + i + "\n" + myRet;
 	}
 
-	private void run(String algorithmFile, String instanceFile, final VehicleRoutingTransportCostsMatrix costMatrix,
+	private void run(String algorithmFile, String instanceFile, final VehicleRoutingTransportCostsMatrix costMatrix, boolean minMax,
 			Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, final String solutionFile, Integer threads, boolean debug, boolean nearby, String debugGraphFile) {
 
 		VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
@@ -239,17 +241,33 @@ public class Run {
 			}
 
 		vraBuilder.setStateAndConstraintManager(stateManager, constraintManager);
-		vraBuilder.setObjectiveFunction(new SolutionCostCalculator() {
-			public double getCosts(VehicleRoutingProblemSolution solution) {
-				double c = 0;
-				for (VehicleRoute r : solution.getRoutes()) {
-					c += stateManager.getRouteState(r, InternalStates.COSTS, Double.class);
-					c += r.getVehicle().getType().getVehicleCostParams().fix;
+		if(minMax) {
+			vraBuilder.setObjectiveFunction(new SolutionCostCalculator() {
+				public double getCosts(VehicleRoutingProblemSolution solution) {
+					double c = 0;
+					for (VehicleRoute r : solution.getRoutes()) {
+						double current = 0.;
+						current += stateManager.getRouteState(r, InternalStates.COSTS, Double.class);
+						current += r.getVehicle().getType().getVehicleCostParams().fix;
+						c = Math.max(c, current);
+					}
+					c += solution.getUnassignedJobs().size() * (1 + c) * 0.1;
+					return c;
 				}
-				c += solution.getUnassignedJobs().size() * (1 + c) * 0.1;
-				return c;
-			}
-		});
+			});
+		} else {
+			vraBuilder.setObjectiveFunction(new SolutionCostCalculator() {
+				public double getCosts(VehicleRoutingProblemSolution solution) {
+					double c = 0;
+					for (VehicleRoute r : solution.getRoutes()) {
+						c += stateManager.getRouteState(r, InternalStates.COSTS, Double.class);
+						c += r.getVehicle().getType().getVehicleCostParams().fix;
+					}
+					c += solution.getUnassignedJobs().size() * (1 + c) * 0.1;
+					return c;
+				}
+			});
+		}
 
 		VehicleRoutingAlgorithm algorithm = vraBuilder.build();
 
