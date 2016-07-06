@@ -28,6 +28,7 @@ import com.graphhopper.jsprit.analysis.toolbox.AlgorithmSearchProgressChartListe
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithmBuilder;
 import com.graphhopper.jsprit.core.algorithm.listener.IterationEndsListener;
+import com.graphhopper.jsprit.core.algorithm.recreate.BreakScheduling;
 import com.graphhopper.jsprit.core.algorithm.state.InternalStates;
 import com.graphhopper.jsprit.core.algorithm.state.StateManager;
 import com.graphhopper.jsprit.core.algorithm.termination.TimeTermination;
@@ -285,6 +286,7 @@ public class Run {
 			}
 		};
 		algorithm.addListener(displayBestScore);
+		algorithm.addListener(new BreakScheduling(problem, stateManager, constraintManager));
 
 		if(algorithmDuration != null) {
 			TimeTermination prematureTermination = new TimeTermination((long)algorithmDuration);
