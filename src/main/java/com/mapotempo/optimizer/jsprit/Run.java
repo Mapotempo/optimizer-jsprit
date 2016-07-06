@@ -30,7 +30,6 @@ import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithmBuilder;
 import com.graphhopper.jsprit.core.algorithm.listener.IterationEndsListener;
 import com.graphhopper.jsprit.core.algorithm.state.InternalStates;
 import com.graphhopper.jsprit.core.algorithm.state.StateManager;
-import com.graphhopper.jsprit.core.algorithm.termination.IterationWithoutImprovementTermination;
 import com.graphhopper.jsprit.core.algorithm.termination.TimeTermination;
 import com.graphhopper.jsprit.core.algorithm.termination.VariationCoefficientTermination;
 import com.graphhopper.jsprit.core.problem.Location;
@@ -53,6 +52,8 @@ import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl.VehicleCostPa
 import com.graphhopper.jsprit.core.reporting.SolutionPrinter;
 import com.graphhopper.jsprit.core.util.Solutions;
 import com.graphhopper.jsprit.core.util.VehicleRoutingTransportCostsMatrix;
+
+import com.mapotempo.optimizer.jsprit.CustomPrematureAlgorithmTermination.StrictIterationWithoutImprovementTermination;
 
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
@@ -298,7 +299,7 @@ public class Run {
 		}
 
 		if(algorithmNoImprovementIteration != null)
-			algorithm.addTerminationCriterion(new IterationWithoutImprovementTermination(algorithmNoImprovementIteration));
+			algorithm.addTerminationCriterion(new StrictIterationWithoutImprovementTermination(algorithmNoImprovementIteration));
 
 		if (debugGraphFile != null) {
 			algorithm.addListener(new AlgorithmSearchProgressChartListener(debugGraphFile));
