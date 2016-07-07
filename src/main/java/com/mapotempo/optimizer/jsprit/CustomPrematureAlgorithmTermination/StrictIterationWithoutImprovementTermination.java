@@ -51,7 +51,7 @@ public class StrictIterationWithoutImprovementTermination implements PrematureAl
 
     @Override
     public boolean isPrematureBreak(SearchStrategy.DiscoveredSolution discoveredSolution) {
-        if(bestSolution == null || bestSolution.getSolution().getCost() < discoveredSolution.getSolution().getCost()){
+        if(bestSolution == null ||  discoveredSolution.getSolution().getCost() < bestSolution.getSolution().getCost()){
             bestSolution = discoveredSolution;
             iterationsWithoutImprovement = 0;
         }
