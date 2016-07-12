@@ -129,7 +129,7 @@ public class Run {
 	public Run(String algorithmFile, String solutionFile, String timeMatrixFile, String distanceMatrixFile,
 			String instanceFile, boolean minMax, Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, Integer threads, boolean debug, boolean nearby, String debugGraphFile) throws IOException {
 		VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder = VehicleRoutingTransportCostsMatrix.Builder
-				.newInstance(true);
+				.newInstance(false);
 		if (timeMatrixFile != null) {
 			readTimeFile(costMatrixBuilder, timeMatrixFile);
 		}
