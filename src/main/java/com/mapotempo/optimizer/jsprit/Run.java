@@ -26,7 +26,6 @@ import java.util.Collection;
 
 import com.graphhopper.jsprit.analysis.toolbox.AlgorithmSearchProgressChartListener;
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
-import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithmBuilder;
 import com.graphhopper.jsprit.core.algorithm.listener.IterationEndsListener;
 import com.graphhopper.jsprit.core.algorithm.recreate.BreakScheduling;
 import com.graphhopper.jsprit.core.algorithm.state.InternalStates;
@@ -40,8 +39,6 @@ import com.graphhopper.jsprit.core.problem.constraint.NoFirstANDSecondSkillConst
 import com.graphhopper.jsprit.core.problem.cost.AbstractForwardVehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.cost.VehicleRoutingTransportCosts;
 import com.graphhopper.jsprit.core.problem.driver.Driver;
-import com.graphhopper.jsprit.core.problem.io.VrpXMLReader;
-import com.graphhopper.jsprit.core.problem.io.VrpXMLWriter;
 import com.graphhopper.jsprit.core.problem.job.Job;
 import com.graphhopper.jsprit.core.problem.solution.SolutionCostCalculator;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
@@ -53,6 +50,12 @@ import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl.VehicleCostPa
 import com.graphhopper.jsprit.core.reporting.SolutionPrinter;
 import com.graphhopper.jsprit.core.util.Solutions;
 import com.graphhopper.jsprit.core.util.VehicleRoutingTransportCostsMatrix;
+
+import com.graphhopper.jsprit.io.algorithm.AlgorithmConfig;
+import com.graphhopper.jsprit.io.algorithm.AlgorithmConfigXmlReader;
+import com.graphhopper.jsprit.io.algorithm.VehicleRoutingAlgorithms;
+import com.graphhopper.jsprit.io.problem.VrpXMLReader;
+import com.graphhopper.jsprit.io.problem.VrpXMLWriter;
 
 import com.mapotempo.optimizer.jsprit.CustomPrematureAlgorithmTermination.StrictIterationWithoutImprovementTermination;
 
@@ -228,12 +231,7 @@ public class Run {
 		new VrpXMLReader(vrpBuilder).read(instanceFile);
 
 		VehicleRoutingProblem problem = vrpBuilder.build();
-		VehicleRoutingAlgorithmBuilder vraBuilder = new VehicleRoutingAlgorithmBuilder(problem, algorithmFile);
-		vraBuilder.setNuOfThreads(threads);
-		vraBuilder.addDefaultCostCalculators();
-		vraBuilder.addCoreConstraints();
 		final StateManager stateManager = new StateManager(problem);
-
 		ConstraintManager constraintManager = new ConstraintManager(problem, stateManager);
 
 		for(Vehicle vehc : problem.getVehicles())
@@ -242,9 +240,9 @@ public class Run {
 				break;
 			}
 
-		vraBuilder.setStateAndConstraintManager(stateManager, constraintManager);
+		SolutionCostCalculator solCost;
 		if(minMax) {
-			vraBuilder.setObjectiveFunction(new SolutionCostCalculator() {
+			solCost = new SolutionCostCalculator() {
 				public double getCosts(VehicleRoutingProblemSolution solution) {
 					double c = 0;
 					for (VehicleRoute r : solution.getRoutes()) {
@@ -256,9 +254,9 @@ public class Run {
 					c += solution.getUnassignedJobs().size() * (1 + c) * 0.1;
 					return c;
 				}
-			});
+			};
 		} else {
-			vraBuilder.setObjectiveFunction(new SolutionCostCalculator() {
+			solCost = new SolutionCostCalculator() {
 				public double getCosts(VehicleRoutingProblemSolution solution) {
 					double c = 0;
 					for (VehicleRoute r : solution.getRoutes()) {
@@ -268,10 +266,12 @@ public class Run {
 					c += solution.getUnassignedJobs().size() * (1 + c) * 0.1;
 					return c;
 				}
-			});
+			};
 		}
-
-		VehicleRoutingAlgorithm algorithm = vraBuilder.build();
+		AlgorithmConfig algo = new AlgorithmConfig();
+		AlgorithmConfigXmlReader reader = new AlgorithmConfigXmlReader(algo);
+		reader.read(algorithmFile);
+		VehicleRoutingAlgorithm algorithm = VehicleRoutingAlgorithms.readAndCreateAlgorithm(problem, algo, threads, solCost, stateManager, constraintManager, true);
 
 		IterationEndsListener displayBestScore = new IterationEndsListener() {
 			@Override

@@ -58,6 +58,11 @@
 			<version>1.6.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
+			<groupId>jsprit</groupId>
+			<artifactId>jsprit-io</artifactId>
+			<version>1.6.3-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>net.sf.jopt-simple</groupId>
 			<artifactId>jopt-simple</artifactId>
 			<version>4.9</version>
