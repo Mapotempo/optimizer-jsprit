@@ -204,22 +204,25 @@ public class Run {
 			VehicleRoutingTransportCosts costEdit = new AbstractForwardVehicleRoutingTransportCosts() {
 
 				@Override
-				public double getTransportCost(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
+				public double getTransportCost(Location from, Location to, double departureTime, double setupDuration, Driver driver, Vehicle vehicle) {
 				if(from == null || to == null)
 					return 0.0;
 				if (vehicle == null) return costMatrix.getDistance(from.getId(), to.getId());
 					VehicleCostParams costParams = vehicle.getType().getVehicleCostParams();
+					double setupCost = 0.;
+					if(!from.equals(to))
+						setupCost = costParams.perSetupTimeUnit * setupDuration * vehicle.getCoefSetupTime();
 					return costParams.perDistanceUnit * costMatrix.getDistance(from.getId(), to.getId()) + 20*Math.sqrt(costParams.perDistanceUnit * costMatrix.getDistance(from.getId(), to.getId()))
-						+ costParams.perTransportTimeUnit * costMatrix.getTransportTime(from, to,departureTime, driver, vehicle) + 20*Math.sqrt(costParams.perTransportTimeUnit * costMatrix.getTransportTime(from, to,departureTime, driver, vehicle));
+						+ costParams.perTransportTimeUnit * costMatrix.getTransportTime(from, to,departureTime, 0., driver, vehicle) + 20*Math.sqrt(costParams.perTransportTimeUnit * costMatrix.getTransportTime(from, to,departureTime, 0., driver, vehicle)) + setupCost;
 				}
 
 				@Override
-				public double getTransportTime(Location from, Location to, double departureTime, Driver driver, Vehicle vehicle) {
+				public double getTransportTime(Location from, Location to, double departureTime, double setupDuration, Driver driver, Vehicle vehicle) {
 					if(from == null || to == null)
 						return 0.0;
 					if (from.getIndex() < 0 || to.getIndex() < 0)
 						throw new IllegalArgumentException("index of from " + from + " to " + to + " < 0 ");
-					return costMatrix.getTransportTime(from, to, departureTime, driver, vehicle);
+					return costMatrix.getTransportTime(from, to, departureTime, setupDuration, driver, vehicle);
 				}
 			};
 			vrpBuilder.setRoutingCost(costEdit);
