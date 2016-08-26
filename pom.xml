@@ -5,6 +5,10 @@
 	<artifactId>mapotempo-jsprit</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
+	<properties>
+		<jsprit.version>1.6.3-SNAPSHOT</jsprit.version>
+	</properties>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -48,19 +52,19 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>jsprit</groupId>
+			<groupId>com.graphhopper</groupId>
 			<artifactId>jsprit-core</artifactId>
-			<version>1.6.3-SNAPSHOT</version>
+			<version>${jsprit.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>jsprit</groupId>
+			<groupId>com.graphhopper</groupId>
 			<artifactId>jsprit-analysis</artifactId>
-			<version>1.6.3-SNAPSHOT</version>
+			<version>${jsprit.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>jsprit</groupId>
+			<groupId>com.graphhopper</groupId>
 			<artifactId>jsprit-io</artifactId>
-			<version>1.6.3-SNAPSHOT</version>
+			<version>${jsprit.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sf.jopt-simple</groupId>
