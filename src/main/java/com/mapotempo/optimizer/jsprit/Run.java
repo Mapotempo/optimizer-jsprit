@@ -254,7 +254,7 @@ public class Run {
 						current += r.getVehicle().getType().getVehicleCostParams().fix;
 						c = Math.max(c, current);
 					}
-					c += solution.getUnassignedJobs().size() * (1 + c) * 0.1;
+					c += solution.getUnassignedJobs().size() * (1 + c) * 0.5;
 					return c;
 				}
 			};
@@ -266,7 +266,7 @@ public class Run {
 						c += stateManager.getRouteState(r, InternalStates.COSTS, Double.class);
 						c += r.getVehicle().getType().getVehicleCostParams().fix;
 					}
-					c += solution.getUnassignedJobs().size() * (1 + c) * 0.1;
+					c += solution.getUnassignedJobs().size() * (1 + c) * 0.5;
 					return c;
 				}
 			};
