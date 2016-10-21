@@ -81,6 +81,7 @@ public class Run {
 				.withRequiredArg().ofType(String.class);
 		OptionSpec<String> optionInstanceFile = parser.accepts("instance").withRequiredArg().ofType(String.class)
 				.required();
+		OptionSpec<String> optionRelationFile = parser.accepts("relations").withRequiredArg().ofType(String.class);
 		OptionSpec<String> optionAlgorithm = parser.accepts("algorithm").withOptionalArg().ofType(String.class)
 				.defaultsTo("algorithmConfig.xml");
 		OptionSpec<String> optionSolution = parser.accepts("solution").withOptionalArg().ofType(String.class)
@@ -115,6 +116,7 @@ public class Run {
 		String timeMatrixFile = options.valueOf(optionTimeMatrix);
 		String distanceMatrixFile = options.valueOf(optionsDistanceMatrix);
 		String instanceFile = options.valueOf(optionInstanceFile);
+		String relationFile = options.valueOf(optionRelationFile);
 		boolean minMax = options.has("minmax");
 		Integer solveDuration = options.valueOf(optionTimeLimit);
 		Integer solveIterationWithoutImprovement = options.valueOf(optionWithoutImprovementIterationLimit);
@@ -125,12 +127,12 @@ public class Run {
 		boolean nearby = options.has("nearby");
 		String debugGraphFile = options.valueOf(optionDebugGraph);
 
-		new Run(algorithmFile, solutionFile, timeMatrixFile, distanceMatrixFile, instanceFile, minMax, solveDuration, solveIterationWithoutImprovement, solveIterationWithoutVariation, solveCoefficientWithoutVariation, threads, debug, nearby,
+		new Run(algorithmFile, solutionFile, timeMatrixFile, distanceMatrixFile, instanceFile, relationFile, minMax, solveDuration, solveIterationWithoutImprovement, solveIterationWithoutVariation, solveCoefficientWithoutVariation, threads, debug, nearby,
 				debugGraphFile);
 	}
 
 	public Run(String algorithmFile, String solutionFile, String timeMatrixFile, String distanceMatrixFile,
-			String instanceFile, boolean minMax, Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, Integer threads, boolean debug, boolean nearby, String debugGraphFile) throws IOException {
+			String instanceFile, String relationFile, boolean minMax, Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, Integer threads, boolean debug, boolean nearby, String debugGraphFile) throws IOException {
 		VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder = VehicleRoutingTransportCostsMatrix.Builder
 				.newInstance(false);
 		if (timeMatrixFile != null) {
@@ -139,7 +141,7 @@ public class Run {
 		if (distanceMatrixFile != null) {
 			readDistanceFile(costMatrixBuilder, distanceMatrixFile);
 		}
-		run(algorithmFile, instanceFile, costMatrixBuilder.build(), minMax, algorithmDuration, algorithmNoImprovementIteration, algorithmStableIteration, algorithmStableCoef, solutionFile, threads, debug, nearby, debugGraphFile);
+		run(algorithmFile, instanceFile, relationFile, costMatrixBuilder.build(), minMax, algorithmDuration, algorithmNoImprovementIteration, algorithmStableIteration, algorithmStableCoef, solutionFile, threads, debug, nearby, debugGraphFile);
 	}
 
 	private void readTimeFile(VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder, String path)
@@ -196,7 +198,7 @@ public class Run {
 		return "Nb delivery : " + i + "\n" + myRet;
 	}
 
-	private void run(String algorithmFile, String instanceFile, final VehicleRoutingTransportCostsMatrix costMatrix, boolean minMax,
+	private void run(String algorithmFile, String instanceFile, String relationFile, final VehicleRoutingTransportCostsMatrix costMatrix, boolean minMax,
 			Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, final String solutionFile, Integer threads, boolean debug, boolean nearby, String debugGraphFile) {
 
 		VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
@@ -242,6 +244,10 @@ public class Run {
 				constraintManager.addConstraint(new NoFirstANDSecondSkillConstraint(problem.getLinkedSkills(), stateManager), ConstraintManager.Priority.CRITICAL);
 				break;
 			}
+
+		if (relationFile != null) {
+		    new RelationXMLReader(problem, stateManager, constraintManager).read(relationFile);
+		}
 
 		SolutionCostCalculator solCost;
 		if(minMax) {

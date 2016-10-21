@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    # Copyright © Mapotempo, 2016
+    #
+    # This file is part of Mapotempo.
+    #
+    # Mapotempo is free software. You can redistribute it and/or
+    # modify since you respect the terms of the GNU Affero General
+    # Public License as published by the Free Software Foundation,
+    # either version 3 of the License, or (at your option) any later version.
+    #
+    # Mapotempo is distributed in the hope that it will be useful, but WITHOUT
+    # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+    # or FITNESS FOR A PARTICULAR PURPOSE.  See the Licenses for more details.
+    #
+    # You should have received a copy of the GNU Affero General Public License
+    # along with Mapotempo. If not, see:
+    # <http://www.gnu.org/licenses/agpl.html>
+  -->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.w3schools.com"
+           xmlns="http://www.w3schools.com" elementFormDefault="qualified">
+
+    <xs:element name="relation">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="sameRouteRelations" type="sameRoute" minOccurs="0"
+                            maxOccurs="unbounded"/>
+                <xs:element name="orderRelations" type="order" minOccurs="0"
+                            maxOccurs="unbounded"/>
+                <xs:element name="sequenceRelations" type="sequence" minOccurs="0"
+                            maxOccurs="unbounded"/>
+                <xs:element name="minimalVehicleLapseRelations" type="minimalVehicleLapse" minOccurs="0"
+                            maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="sameRoute">
+        <xs:sequence>
+            <xs:element name="serviceIds" type="serviceIdsType" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="order">
+        <xs:sequence>
+            <xs:element name="serviceIds" type="serviceIdsType" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="sequence">
+        <xs:sequence>
+            <xs:element name="serviceIds" type="serviceIdsType" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="minimalVehicleLapse">
+        <xs:sequence>
+            <xs:element name="lapse" type="xs:double" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="serviceIds" type="serviceIdsType" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="serviceIdsType">
+        <xs:sequence>
+            <xs:element name="serviceId" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

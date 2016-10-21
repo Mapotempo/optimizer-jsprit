@@ -20,6 +20,7 @@ package com.mapotempo.optimizer.jsprit.Constraints;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.lang.*;
 
 import com.graphhopper.jsprit.core.algorithm.state.StateId;
 import com.graphhopper.jsprit.core.algorithm.state.StateManager;
@@ -27,28 +28,30 @@ import com.graphhopper.jsprit.core.problem.constraint.HardRouteConstraint;
 import com.graphhopper.jsprit.core.problem.misc.JobInsertionContext;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 
-public class InSameRoute implements HardRouteConstraint {
+public class MinimalVehicleLapse implements HardRouteConstraint {
 
     StateManager stateManager;
 
     Hashtable<Integer, StateId> routeStateHash;
-    Hashtable<Integer, ArrayList<Integer>> sameRouteHash; 
+    Hashtable<Integer, ArrayList<Integer>> lapseActivities;
+    int lapse;
 
-    public InSameRoute(StateManager stateManager, final Hashtable<Integer, StateId> routeStateHash, final Hashtable<Integer, ArrayList<Integer>> sameRouteHash) {
+    public MinimalVehicleLapse(StateManager stateManager, final Hashtable<Integer, StateId> routeStateHash, final Hashtable<Integer, ArrayList<Integer>> lapseActivities, final int lapse) {
         this.stateManager = stateManager;
         this.routeStateHash = routeStateHash;
-        this.sameRouteHash = sameRouteHash;
+        this.lapseActivities = lapseActivities;
+        this.lapse = lapse;
     }
 
     @Override
     public boolean fulfilled(JobInsertionContext iFacts) {
-        if(sameRouteHash.containsKey(iFacts.getJob().getIndex()) && sameRouteHash.containsKey(iFacts.getJob().getIndex())) {
-            ArrayList<Integer> sameRouteJobs = sameRouteHash.get(iFacts.getJob().getIndex());
-            for(Integer toCompare : sameRouteJobs) {
+        if(lapseActivities.containsKey(iFacts.getJob().getIndex()) && lapseActivities.containsKey(iFacts.getJob().getIndex())) {
+            ArrayList<Integer> minimalRouteLapse = lapseActivities.get(iFacts.getJob().getIndex());
+            for(Integer toCompare : minimalRouteLapse) {
                 StateId toCompareState = routeStateHash.get(toCompare);
                 VehicleRoute routeCompareActivity = stateManager.getProblemState(toCompareState, VehicleRoute.class);
                 if(routeCompareActivity!= null) {
-                    if(!iFacts.getRoute().equals(routeCompareActivity)) {
+                    if(Math.abs(iFacts.getNewVehicle().getIndex() - routeCompareActivity.getVehicle().getIndex()) < lapse) {
                         return false;
                     }
                 }

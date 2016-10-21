@@ -1,4 +1,4 @@
-package Status;
+package com.mapotempo.optimizer.jsprit.Status;
 
 import java.util.Hashtable;
 
