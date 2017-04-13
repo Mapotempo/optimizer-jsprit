@@ -57,6 +57,7 @@ import com.graphhopper.jsprit.io.algorithm.VehicleRoutingAlgorithms;
 import com.graphhopper.jsprit.io.problem.VrpXMLReader;
 import com.graphhopper.jsprit.io.problem.VrpXMLWriter;
 
+import com.mapotempo.optimizer.jsprit.Constraints.MaximumVehicleNumberConstraint;
 import com.mapotempo.optimizer.jsprit.CustomPrematureAlgorithmTermination.StrictIterationWithoutImprovementTermination;
 
 import joptsimple.OptionException;
@@ -91,6 +92,7 @@ public class Run {
 		OptionSpec<Integer> optionWithoutImprovementIterationLimit = parser.accepts("no_improvment_iterations").withRequiredArg().ofType(Integer.class);
 		OptionSpec<Integer> optionWithoutVariationLimit = parser.accepts("stable_iterations").withRequiredArg().ofType(Integer.class);
 		OptionSpec<Double> optionWithoutVariationCoefficient = parser.accepts("stable_coef").withRequiredArg().ofType(Double.class);
+		OptionSpec<Integer> optionVehicleLimit = parser.accepts("vehicle_limit").withRequiredArg().ofType(Integer.class);
 		OptionSpec<Integer> optionThreads = parser.accepts("threads").withRequiredArg().ofType(Integer.class)
 				.defaultsTo(1);
 		parser.accepts("nearby");
@@ -122,17 +124,18 @@ public class Run {
 		Integer solveIterationWithoutImprovement = options.valueOf(optionWithoutImprovementIterationLimit);
 		Integer solveIterationWithoutVariation = options.valueOf(optionWithoutVariationLimit);
 		Double solveCoefficientWithoutVariation = options.valueOf(optionWithoutVariationCoefficient);
+		Integer solveVehicleLimit = options.valueOf(optionVehicleLimit);
 		Integer threads = options.valueOf(optionThreads);
 		boolean debug = options.has("debug");
 		boolean nearby = options.has("nearby");
 		String debugGraphFile = options.valueOf(optionDebugGraph);
 
-		new Run(algorithmFile, solutionFile, timeMatrixFile, distanceMatrixFile, instanceFile, relationFile, minMax, solveDuration, solveIterationWithoutImprovement, solveIterationWithoutVariation, solveCoefficientWithoutVariation, threads, debug, nearby,
+		new Run(algorithmFile, solutionFile, timeMatrixFile, distanceMatrixFile, instanceFile, relationFile, minMax, solveDuration, solveIterationWithoutImprovement, solveIterationWithoutVariation, solveCoefficientWithoutVariation, solveVehicleLimit, threads, debug, nearby,
 				debugGraphFile);
 	}
 
 	public Run(String algorithmFile, String solutionFile, String timeMatrixFile, String distanceMatrixFile,
-			String instanceFile, String relationFile, boolean minMax, Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, Integer threads, boolean debug, boolean nearby, String debugGraphFile) throws IOException {
+			String instanceFile, String relationFile, boolean minMax, Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, Integer solveVehicleLimit, Integer threads, boolean debug, boolean nearby, String debugGraphFile) throws IOException {
 		VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder = VehicleRoutingTransportCostsMatrix.Builder
 				.newInstance(false);
 		if (timeMatrixFile != null) {
@@ -141,7 +144,7 @@ public class Run {
 		if (distanceMatrixFile != null) {
 			readDistanceFile(costMatrixBuilder, distanceMatrixFile);
 		}
-		run(algorithmFile, instanceFile, relationFile, costMatrixBuilder.build(), minMax, algorithmDuration, algorithmNoImprovementIteration, algorithmStableIteration, algorithmStableCoef, solutionFile, threads, debug, nearby, debugGraphFile);
+		run(algorithmFile, instanceFile, relationFile, costMatrixBuilder.build(), minMax, algorithmDuration, algorithmNoImprovementIteration, algorithmStableIteration, algorithmStableCoef, solveVehicleLimit, solutionFile, threads, debug, nearby, debugGraphFile);
 	}
 
 	private void readTimeFile(VehicleRoutingTransportCostsMatrix.Builder costMatrixBuilder, String path)
@@ -199,7 +202,7 @@ public class Run {
 	}
 
 	private void run(String algorithmFile, String instanceFile, String relationFile, final VehicleRoutingTransportCostsMatrix costMatrix, boolean minMax,
-			Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, final String solutionFile, Integer threads, boolean debug, boolean nearby, String debugGraphFile) {
+			Integer algorithmDuration, Integer algorithmNoImprovementIteration, Integer algorithmStableIteration, Double algorithmStableCoef, Integer solveVehicleLimit, final String solutionFile, Integer threads, boolean debug, boolean nearby, String debugGraphFile) {
 
 		VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
 		if(nearby) {
@@ -238,6 +241,10 @@ public class Run {
 		VehicleRoutingProblem problem = vrpBuilder.build();
 		final StateManager stateManager = new StateManager(problem);
 		ConstraintManager constraintManager = new ConstraintManager(problem, stateManager);
+
+		if(solveVehicleLimit != null && solveVehicleLimit > 0) {
+			constraintManager.addConstraint(new MaximumVehicleNumberConstraint(stateManager, solveVehicleLimit));
+		}
 
 		for(Vehicle vehc : problem.getVehicles())
 			if(vehc.getAlternativeSkills().size() > 1) {
